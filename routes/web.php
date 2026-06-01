@@ -5,7 +5,10 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 
 // --- RUTE PUBLIK (BISA DIAKSES SIAPA SAJA) ---
-Route::post('/register', [RegisterController::class, 'register']);
+Route::postRoute::get('/register', function (Illuminate\Http\Request $request) {
+    $referralCode = $request->query('ref');
+    return view('auth.register', compact('referralCode'));
+});
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout']);
 
@@ -29,6 +32,27 @@ Route::middleware(['auth'])->group(function () {
         // --- RUTE BARU: MANAJEMEN PENARIKAN DANA (WITHDRAWAL) ---
         Route::get('/withdrawals', [\App\Http\Controllers\Admin\AdminWithdrawalController::class, 'index']);
         Route::post('/withdrawals/{id}/process', [\App\Http\Controllers\Admin\AdminWithdrawalController::class, 'process']);
+
+        // --- KENDALI VERIFIKASI AGEN PENDING (Bagian 4.1 & 4.3) ---
+        // Tampilan antrean agen pending
+        Route::get('/agents/pending', [AdminAgentController::class, 'pendingIndex']);
+        
+        // Eksekusi tombol "Setujui" -> Ubah status 'active' & bagi bonus unilevel 10 tingkat
+        Route::post('/agents/{id}/approve', [AdminAgentController::class, 'approveAgent']);
+        
+        // Eksekusi tombol "Tolak" -> Ubah status 'rejected'
+        Route::post('/agents/{id}/reject', [AdminAgentController::class, 'rejectAgent']);
+
+
+        // --- KENDALI VERIFIKASI PENARIKAN DANA / WD (Bagian 4.2) ---
+        // Tampilan antrean permintaan WD keuangan agen
+        Route::get('/withdrawals', [AdminWithdrawalController::class, 'index']);
+        
+        // Eksekusi tombol "Konfirmasi Transfer" -> Status WD berubah jadi approved
+        Route::post('/withdrawals/{id}/approve', [AdminWithdrawalController::class, 'approveWithdrawal']);
+        
+        // Eksekusi tombol "Tolak / Refund" -> Batalkan WD & kembalikan saldo ke dompet agen
+        Route::post('/withdrawals/{id}/reject', [AdminWithdrawalController::class, 'rejectWithdrawal']);
     });
 
 
@@ -45,6 +69,19 @@ Route::middleware(['auth'])->group(function () {
         // --- RUTE JARINGAN GENEALOGI & STATISTIK ---
         Route::get('/network/tree', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getGenealogyTree']);
         Route::get('/network/summary', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getNetworkSummary']); // RUTE BARU
+
+        // Rute Bagian 3.1: Overview Dashboard Utama
+        Route::get('/agent/dashboard', [AgentNetworkController::class, 'index']);
+
+        // Rute Bagian 3.3: Struktur Pohon Jaringan (Accordion Tree)
+        Route::get('/agent/network', [AgentNetworkController::class, 'networkTree']);
+
+        // Rute Bagian 3.2: Dompet Keuangan & Riwayat Mutasi Bonus
+        Route::get('/agent/wallet', [WalletController::class, 'index']);
+        Route::post('/agent/wallet/withdraw', [WalletController::class, 'withdraw']);
     });
 
 });
+
+// Rute khusus untuk menangani upload dari tengah modal pembeku
+Route::middleware(['auth'])->post('/api/payment/upload', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'uploadProofOfPayment']);

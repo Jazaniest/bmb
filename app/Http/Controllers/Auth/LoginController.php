@@ -41,6 +41,21 @@ class LoginController extends Controller
         ], 401);
     }
 
+    /**
+     * Logika setelah user sukses melewati proses pencocokan email & password
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        // Jika yang login adalah Super Admin pusat, lempar ke dashboard admin
+        if ($user->role === 'admin') {
+            return redirect()->intended('/admin/dashboard');
+        }
+
+        // Jika dia adalah Agen (baik berstatus 'active' maupun 'pending'), lempar ke rute yang sama
+        // Karena penguncian akun pending sudah ditangani oleh komponen blade 'modal-pending' secara global
+        return redirect()->intended('/agent/dashboard');
+    }
+
     public function logout(Request $request): JsonResponse
     {
         Auth::logout();

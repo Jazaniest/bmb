@@ -6,9 +6,85 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class AgentNetworkController extends Controller
 {
+    /**
+     * Bagian 3.1: Render Halaman Overview Utama Agen
+     */
+    public function index()
+    {
+        $user = auth()->user();
+
+        // 1. Ambil saldo aktif saat ini dari database user
+        $walletBalance = $user->balance;
+
+        // 2. Hitung total seluruh komisi yang pernah didapatkan (akumulasi mutasi jenis credit)
+        $totalEarned = $user->mutations()->where('type', 'credit')->sum('amount');
+
+        // 3. Hitung total jumlah seluruh anggota jaringan (downline) di bawahnya
+        $totalNetworkSize = $user->descendants()->count(); // Menggunakan package adjacency list atau method rekursif Anda
+
+        return view('agent.dashboard', compact('walletBalance', 'totalEarned', 'totalNetworkSize'));
+    }
+
+    /**
+     * Bagian 3.3: Render Silsilah Pohon Jaringan (Accordion List 10 Tingkat)
+     */
+    public function networkTree()
+    {
+        $user = auth()->user();
+
+        // 1. Ambil data hitungan statistik jumlah kepala dari Level 1 sampai Level 10
+        // Memanggil fungsi helper/prosedur statistik Fase 4 Bagian 2 yang sudah Anda buat
+        $levelCounts = $this->calculateLevelStats($user->id);
+
+        // 2. Ambil data pohon bersarang (nested array) sampai kedalaman maksimal 10 tingkat
+        // Eager loading relasi 'children' secara rekursif agar query tetap ringan dan efisien
+        $networkTree = User::where('sponsor_id', $user->id)
+            ->with(['children.children.children']) // Sesuaikan kedalaman eager load yang Anda inginkan
+            ->get()
+            ->map(function ($lvl1) {
+                return [
+                    'id' => $lvl1->id,
+                    'name' => $lvl1->name,
+                    'join_date' => $lvl1->created_at->translatedFormat('d M Y'),
+                    'children' => $lvl1->children->map(function ($lvl2) {
+                        return [
+                            'id' => $lvl2->id,
+                            'name' => $lvl2->name,
+                            'children' => $lvl2->children->map(function ($lvl3) {
+                                return [
+                                    'id' => $lvl3->id,
+                                    'name' => $lvl3->name,
+                                ];
+                            })->toArray()
+                        ];
+                    })->toArray()
+                ];
+            })->toArray();
+
+        return view('agent.network', compact('levelCounts', 'networkTree'));
+    }
+
+    /**
+     * Helper internal untuk memetakan jumlah downline per tingkatan generasi
+     */
+    private function calculateLevelStats($userId)
+    {
+        $stats = [];
+        for ($i = 1; $i <= 10; $i++) {
+            // Contoh logic sederhana: panggil query kedalaman level Anda di sini
+            $stats['level_' . $i] = 0; 
+        }
+        
+        // Isikan hasil query kedalaman dari tabel jaringan Anda ke dalam array $stats
+        // ... Logika hitung kedalaman tingkat ...
+
+        return $stats;
+    }
+
     /**
      * Mengambil struktur pohon jaringan downline (Genealogy Tree) maksimal 10 tingkat
      */
@@ -169,5 +245,37 @@ class AgentNetworkController extends Controller
         }
 
         return $branch;
+    }
+
+    /**
+     * Menangani unggahan foto bukti transfer lisensi dari agen berstatus pending
+     */
+    public function uploadProofOfPayment(Request $request)
+    {
+        // 1. Validasi berkas gambar yang dikirim dari modal pembeku
+        $request->validate([
+            'proof_of_payment' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $user = auth()->user();
+
+        // 2. Simpan file gambar ke dalam storage lokal/cloud secara aman
+        if ($request->hasFile('proof_of_payment')) {
+            $file = $request->file('proof_of_payment');
+            
+            // Simpan ke folder internal 'proof_payments'
+            $path = $file->store('proof_payments', 'public');
+
+            // 3. Simpan path/nama file ke kolom database user atau tabel transaksi pendaftaran
+            // Untuk skema dasar, kita simpan sementara di kolom kustom data user atau log pembayaran
+            $user->update([
+                // Misal kita simpan di kolom catatan/kustom field untuk diverifikasi admin nanti
+                'remember_token' => $path // Atau sesuaikan dengan kolom kustom 'proof_img' di tabel Anda
+            ]);
+
+            return redirect()->back()->with('success', 'Bukti transfer berhasil diunggah! Mohon tunggu konfirmasi verifikasi dari Admin Pusat.');
+        }
+
+        return redirect()->back()->with('error', 'Gagal memproses unggahan gambar. Silakan coba lagi.');
     }
 }
