@@ -38,9 +38,13 @@ Route::middleware(['auth'])->group(function () {
             return response()->json(['message' => 'Selamat datang di Ruang Kerja Agen Kaukaba. Akun Anda resmi aktif!']);
         });
 
-        // --- RUTE FINANSIAL DOMPET AGEN ---
+        // Rute finansial dompet agen (dari Fase 3)
         Route::get('/wallet', [\App\Http\Controllers\Agent\AgentWalletController::class, 'getWalletInfo']);
         Route::post('/wallet/withdraw', [\App\Http\Controllers\Agent\AgentWalletController::class, 'requestWithdraw']);
+
+        // --- RUTE JARINGAN GENEALOGI & STATISTIK ---
+        Route::get('/network/tree', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getGenealogyTree']);
+        Route::get('/network/summary', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getNetworkSummary']); // RUTE BARU
     });
 
 });
