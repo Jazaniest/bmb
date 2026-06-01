@@ -17,22 +17,30 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/payment/upload', [PaymentController::class, 'uploadProof']);
 
 
-    // 2. KELOMPOK API KHUSUS ADMIN PUSAT (Untuk Verifikasi Bukti)
+    // KELOMPOK API KHUSUS ADMIN PUSAT
     Route::middleware(['is_admin'])->prefix('admin')->group(function () {
         Route::get('/dashboard', function () {
             return response()->json(['message' => 'Selamat datang di Panel Admin Kaukaba Travel.']);
         });
         
-        // Rute verifikasi pembayaran berdasarkan ID Invoice
-        Route::post('/payment/{id}/verify', [PaymentController::class, 'verifyPayment']);
+        // Rute verifikasi pembayaran pendaftaran (dari Fase 1 bagian 4)
+        Route::post('/payment/{id}/verify', [\App\Http\Controllers\PaymentController::class, 'verifyPayment']);
+
+        // --- RUTE BARU: MANAJEMEN PENARIKAN DANA (WITHDRAWAL) ---
+        Route::get('/withdrawals', [\App\Http\Controllers\Admin\AdminWithdrawalController::class, 'index']);
+        Route::post('/withdrawals/{id}/process', [\App\Http\Controllers\Admin\AdminWithdrawalController::class, 'process']);
     });
 
 
-    // 3. KELOMPOK API KHUSUS AGEN / JAMAAH AKTIF
+    // KELOMPOK API KHUSUS AGEN / JAMAAH AKTIF
     Route::middleware(['is_agent'])->prefix('agent')->group(function () {
         Route::get('/dashboard', function () {
             return response()->json(['message' => 'Selamat datang di Ruang Kerja Agen Kaukaba. Akun Anda resmi aktif!']);
         });
+
+        // --- RUTE FINANSIAL DOMPET AGEN ---
+        Route::get('/wallet', [\App\Http\Controllers\Agent\AgentWalletController::class, 'getWalletInfo']);
+        Route::post('/wallet/withdraw', [\App\Http\Controllers\Agent\AgentWalletController::class, 'requestWithdraw']);
     });
 
 });

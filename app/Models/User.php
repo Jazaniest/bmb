@@ -101,4 +101,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class, 'user_id');
     }
+
+    /**
+     * RELASI: Satu user memiliki banyak penarikan dana
+     */
+    public function withdrawals(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Withdrawal::class, 'user_id');
+    }
 }
