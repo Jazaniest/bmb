@@ -17,23 +17,23 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // --- KOLOM STRUKTUR JARINGAN (MATAHARI) ---
+            // sponsor_id mencatat siapa yang mengajak. Boleh null untuk akun pusat/admin pertama.
+            $table->foreignId('sponsor_id')->nullable()->constrained('users')->onDelete('set null');
+            
+            // path mencatat silsilah kedalaman, contoh: "1/3/7/12"
+            $table->text('path')->nullable(); 
+            
+            // Menggunakan tipe data string agar kode referral berupa kombinasi huruf & angka
+            $table->string('referral_code')->unique()->nullable();
+            
+            // Status akun: pending (belum bayar) atau active (sudah lunas Rp 3.500.000)
+            $table->enum('status', ['pending', 'active'])->default('pending');
+            // ------------------------------------------
+
             $table->rememberToken();
             $table->timestamps();
-        });
-
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
-
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
         });
     }
 
@@ -43,7 +43,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
-        Schema::dropIfExists('sessions');
     }
 };
