@@ -84,5 +84,21 @@ class User extends Authenticatable
     public function isAgent(): bool
     {
         return $this->id !== 1;
-}
+    }
+
+    /**
+     * RELASI: Satu user memiliki satu dompet (Wallet)
+     */
+    public function wallet(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Wallet::class, 'user_id');
+    }
+
+    /**
+     * RELASI: Satu user memiliki banyak riwayat transaksi
+     */
+    public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Transaction::class, 'user_id');
+    }
 }
