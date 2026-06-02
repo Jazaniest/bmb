@@ -5,66 +5,51 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\JsonResponse;
 
 class LoginController extends Controller
 {
-    public function login(Request $request): JsonResponse
+    public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+        // 1. Validasi Input Form
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        $credentials = $request->only('email', 'password');
+
+        // 2. Jalankan Proses Autentikasi
+        if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            $user = Auth::user();
 
-            // Tentukan arah redirect atau info berdasarkan status & role
-            $role = $user->isAdmin() ? 'admin' : 'agent';
+            // 3. AMBIL DATA USER YANG BERHASIL LOGIN
+            $user = \Illuminate\Support\Facades\Auth::user();
+            
+            // 4. KEMUDI PENGALIHAN BERDASARKAN ROLE RIIL
+            if ($user->isAdmin()) { // atau $user->role === 'admin'
+                // Jika Admin, lempar ke Dashboard Antrean Admin Pusat
+                return redirect()->intended('/admin/agents/pending')
+                                ->with('success', 'Selamat Datang Kembali, Admin Pusat!');
+            }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Login berhasil.',
-                'data' => [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $role,
-                    'status' => $user->status
-                ]
-            ], 200);
+            if ($user->isAgent()) { // atau $user->role === 'agent'
+                // Jika Agen, lempar ke Dashboard Kerja Agen
+                return redirect()->intended('/agent/dashboard')
+                                ->with('success', 'Login berhasil!');
+            }
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Email atau password yang Anda masukkan salah.',
-        ], 401);
+        // Jika baris di atas gagal dieksekusi (Email/Password salah)
+        return back()->withErrors([
+            'email' => 'Kredensial yang Anda masukkan tidak cocok dengan data kami.',
+        ])->onlyInput('email');
     }
 
-    /**
-     * Logika setelah user sukses melewati proses pencocokan email & password
-     */
-    protected function authenticated(Request $request, $user)
-    {
-        // Jika yang login adalah Super Admin pusat, lempar ke dashboard admin
-        if ($user->role === 'admin') {
-            return redirect()->intended('/admin/dashboard');
-        }
-
-        // Jika dia adalah Agen (baik berstatus 'active' maupun 'pending'), lempar ke rute yang sama
-        // Karena penguncian akun pending sudah ditangani oleh komponen blade 'modal-pending' secara global
-        return redirect()->intended('/agent/dashboard');
-    }
-
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Logout berhasil.'
-        ], 200);
+        return redirect('/login');
     }
 }

@@ -18,20 +18,16 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             
-            // --- KOLOM STRUKTUR JARINGAN (MATAHARI) ---
-            // sponsor_id mencatat siapa yang mengajak. Boleh null untuk akun pusat/admin pertama.
+            // --- TAMBAHKAN BARIS INI ---
+            // Menggunakan enum atau string biasa dengan default 'agent'
+            $table->string('role')->default('agent'); 
+            
+            $table->string('status')->default('pending'); // Status awal akun baru
             $table->foreignId('sponsor_id')->nullable()->constrained('users')->onDelete('set null');
-            
-            // path mencatat silsilah kedalaman, contoh: "1/3/7/12"
-            $table->text('path')->nullable(); 
-            
-            // Menggunakan tipe data string agar kode referral berupa kombinasi huruf & angka
-            $table->string('referral_code')->unique()->nullable();
-            
-            // Status akun: pending (belum bayar) atau active (sudah lunas Rp 3.500.000)
-            $table->enum('status', ['pending', 'active'])->default('pending');
-            // ------------------------------------------
-
+            $table->string('bank_name')->nullable();
+            $table->string('account_number')->nullable();
+            $table->string('account_name')->nullable();
+            $table->decimal('balance', 15, 2)->default(0);
             $table->rememberToken();
             $table->timestamps();
         });

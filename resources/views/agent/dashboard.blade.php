@@ -15,7 +15,7 @@
         
         <div class="space-y-1 relative z-10">
             <h2 class="text-xl sm:text-2xl font-black tracking-tight">Ahlan Wa Sahlan, {{ auth()->user()->name }}!</h2>
-            <p class="text-xs text-teal-200">Mitra Resmi Kaukaba Tour & Travel • ID Agen: <span class="font-mono font-bold text-amber-400">KKB-{{ auth()->user()->id }}-{{ border_str_pad ?? 'ACTIVE' }}</span></p>
+            <p class="text-xs text-teal-200">Mitra Resmi Kaukaba Tour & Travel • ID Agen: <span class="font-mono font-bold text-amber-400">KKB-{{ str_pad(auth()->user()->id, 7, '0', STR_PAD_LEFT) }}</span></p>
         </div>
 
         <!-- SLOT LINK REFERRAL DENGAN JAVASCRIPT COPY BUTTON -->

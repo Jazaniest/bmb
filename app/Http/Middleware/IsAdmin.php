@@ -10,14 +10,13 @@ class IsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Pastikan user sudah login dan merupakan Admin
+        // 1. Pastikan user sudah login dan benar-benar seorang Admin
         if (auth()->check() && auth()->user()->isAdmin()) {
             return $next($request);
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Akses ditolak. Halaman ini hanya untuk manajemen Admin Pusat.'
-        ], 403);
+        // 2. Jika bukan admin, lempar balik ke halaman login dengan pesan peringatan web HTML
+        auth()->logout(); // Opsional: paksa logout jika ada agen nakal coba tembus rute admin
+        return redirect('/login')->with('error', 'Akses ditolak! Halaman tersebut hanya dapat diakses oleh Manajemen Admin Pusat.');
     }
 }

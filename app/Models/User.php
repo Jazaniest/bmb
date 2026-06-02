@@ -1,6 +1,6 @@
 <?php
 
-namespace App\App\Models;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -20,6 +20,7 @@ class User extends Authenticatable
         'email',
         'password',
         'sponsor_id',    // Diperlukan saat registrasi
+        'role',
         'path',          // Diperlukan untuk pelacakan level
         'referral_code', // Kode unik agen
         'status',        // Status keaktifan
@@ -78,12 +79,12 @@ class User extends Authenticatable
     {
         // Anda bisa menyesuaikan logika ini, misalnya mengecek kolom 'role' 
         // jika Anda menambahkannya di migration. Untuk skema awal, kita asumsikan ID 1 adalah Admin Pusat.
-        return $this->id === 1; 
+        return $this->role === 'admin';
     }
 
     public function isAgent(): bool
     {
-        return $this->id !== 1;
+        return $this->role === 'agent';
     }
 
     /**

@@ -10,28 +10,28 @@ use Illuminate\Support\Facades\DB;
 class WalletController extends Controller
 {
     /**
-     * Bagian 3.2: Tampilkan Halaman Keuangan Agen
+     * Tampilkan Halaman Visual Dompet Keuangan Agen (Web View)
      */
     public function index()
     {
         $user = auth()->user();
 
-        $walletBalance = $user->balance;
+        // 1. Ambil data finansial langsung dari properti user
+        $walletBalance = $user->balance ?? 0;
+        
+        // 2. Hitung total komisi akumulatif yang pernah didapatkan (akumulasi mutasi tipe masuk/credit)
+        // Jika Anda belum membuat relasi mutations, kita set default 0 dulu agar tidak error
+        $totalEarned = method_exists($user, 'mutations') 
+            ? $user->mutations()->where('type', 'credit')->sum('amount') 
+            : 0;
 
-        // Ambil riwayat mutasi dompet terbaru dari database, urutkan dari yang paling baru
-        $mutations = $user->mutations()
-            ->latest()
-            ->get()
-            ->map(function ($mut) {
-                return [
-                    'created_at' => $mut->created_at->format('Y-m-d H:i:s'),
-                    'description' => $mut->description,
-                    'type' => $mut->type, // 'credit' atau 'debit'
-                    'amount' => $mut->amount
-                ];
-            })->toArray();
+        // 3. Ambil riwayat mutasi dompet terbaru
+        $mutations = method_exists($user, 'mutations') 
+            ? $user->mutations()->latest()->take(10)->get() 
+            : [];
 
-        return view('agent.wallet', compact('walletBalance', 'mutations'));
+        // 4. OPER DATA KE TEMPLATE BLADE (Bukan mengembalikan JSON)
+        return view('agent.wallet', compact('walletBalance', 'totalEarned', 'mutations'));
     }
 
     /**

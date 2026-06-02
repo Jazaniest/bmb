@@ -32,32 +32,46 @@ class AgentNetworkController extends Controller
     /**
      * Bagian 3.3: Render Silsilah Pohon Jaringan (Accordion List 10 Tingkat)
      */
+    /**
+     * Tampilkan Halaman Pohon Jaringan Keagenan (Web View)
+     */
     public function networkTree()
     {
         $user = auth()->user();
 
-        // 1. Ambil data hitungan statistik jumlah kepala dari Level 1 sampai Level 10
-        // Memanggil fungsi helper/prosedur statistik Fase 4 Bagian 2 yang sudah Anda buat
-        $levelCounts = $this->calculateLevelStats($user->id);
+        // 1. Ambil data statistik jumlah downline dari Level 1 sampai Level 10
+        // Kita siapkan array default berisi 0 untuk masing-masing tingkatan generasi
+        $levelCounts = [];
+        for ($i = 1; $i <= 10; $i++) {
+            $levelCounts['level_' . $i] = 0;
+        }
 
-        // 2. Ambil data pohon bersarang (nested array) sampai kedalaman maksimal 10 tingkat
-        // Eager loading relasi 'children' secara rekursif agar query tetap ringan dan efisien
+        // Jalankan fungsi hitung statistik riil jika fungsi getUplineIds atau tracker Anda sudah siap
+        // Untuk sementara, kita hitung downline langsung (Level 1) secara riil dari database
+        $levelCounts['level_1'] = $user->referrals()->count();
+
+        // 2. Ambil data pohon bersarang (nested array) menggunakan relasi 'referrals' bawaan model User
+        // Kita muat (eager load) secara bersarang hingga 3 tingkat generasi awal untuk efisiensi render view
         $networkTree = User::where('sponsor_id', $user->id)
-            ->with(['children.children.children']) // Sesuaikan kedalaman eager load yang Anda inginkan
+            ->with(['referrals.referrals.referrals']) 
             ->get()
             ->map(function ($lvl1) {
                 return [
                     'id' => $lvl1->id,
                     'name' => $lvl1->name,
-                    'join_date' => $lvl1->created_at->translatedFormat('d M Y'),
-                    'children' => $lvl1->children->map(function ($lvl2) {
+                    'join_date' => $lvl1->created_at ? $lvl1->created_at->format('d M Y') : '-',
+                    'status' => $lvl1->status,
+                    'children' => $lvl1->referrals->map(function ($lvl2) {
                         return [
                             'id' => $lvl2->id,
                             'name' => $lvl2->name,
-                            'children' => $lvl2->children->map(function ($lvl3) {
+                            'status' => $lvl2->status,
+                            'children' => $lvl2->referrals->map(function ($lvl3) {
                                 return [
                                     'id' => $lvl3->id,
                                     'name' => $lvl3->name,
+                                    'status' => $lvl3->status,
+                                    'children' => [] // Bisa diperdalam jika struktur database menggunakan Closure Table / Adjacency List murni
                                 ];
                             })->toArray()
                         ];
@@ -65,6 +79,8 @@ class AgentNetworkController extends Controller
                 ];
             })->toArray();
 
+        // 3. OPER DATA KE TEMPLATE BLADE (Bukan return response()->json)
+        // Pastikan nama file view sesuai dengan letak file Anda (misal: agent.network atau agent.network-tree)
         return view('agent.network', compact('levelCounts', 'networkTree'));
     }
 

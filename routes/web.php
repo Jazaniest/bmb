@@ -3,12 +3,24 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Agent\WalletController;
+use App\Http\Controllers\Admin\AdminAgentController;
+use App\Http\Controllers\Admin\AdminWithdrawalController;
+use App\Http\Controllers\Agent\AgentNetworkController;
+use App\Http\Controllers\PaymentController;
+
+// --- RUTE AKAR / LANDING PAGE UTAMA ---
+Route::get('/', function () {
+    return view('welcome');
+});
+Route::get('/login', function () {
+    return view('auth.login');
+});
 
 // --- RUTE PUBLIK (BISA DIAKSES SIAPA SAJA) ---
-Route::postRoute::get('/register', function (Illuminate\Http\Request $request) {
-    $referralCode = $request->query('ref');
-    return view('auth.register', compact('referralCode'));
-});
+Route::get('/register', [RegisterController::class, 'showRegistrationForm']);
+
+Route::post('/register', [RegisterController::class, 'storeRegister']);
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout']);
 
@@ -23,7 +35,7 @@ Route::middleware(['auth'])->group(function () {
     // KELOMPOK API KHUSUS ADMIN PUSAT
     Route::middleware(['is_admin'])->prefix('admin')->group(function () {
         Route::get('/dashboard', function () {
-            return response()->json(['message' => 'Selamat datang di Panel Admin Kaukaba Travel.']);
+            return view('admin.dashboard');
         });
         
         // Rute verifikasi pembayaran pendaftaran (dari Fase 1 bagian 4)
@@ -59,16 +71,18 @@ Route::middleware(['auth'])->group(function () {
     // KELOMPOK API KHUSUS AGEN / JAMAAH AKTIF
     Route::middleware(['is_agent'])->prefix('agent')->group(function () {
         Route::get('/dashboard', function () {
-            return response()->json(['message' => 'Selamat datang di Ruang Kerja Agen Kaukaba. Akun Anda resmi aktif!']);
+            return view('agent.dashboard');
         });
 
         // Rute finansial dompet agen (dari Fase 3)
-        Route::get('/wallet', [\App\Http\Controllers\Agent\AgentWalletController::class, 'getWalletInfo']);
-        Route::post('/wallet/withdraw', [\App\Http\Controllers\Agent\AgentWalletController::class, 'requestWithdraw']);
+        Route::get('/wallet', [WalletController::class, 'index']);
+        Route::post('/wallet/withdraw', [WalletController::class, 'withdraw']);
 
         // --- RUTE JARINGAN GENEALOGI & STATISTIK ---
-        Route::get('/network/tree', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getGenealogyTree']);
+        Route::get('/network', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getGenealogyTree']);
         Route::get('/network/summary', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getNetworkSummary']); // RUTE BARU
+
+        Route::get('/network', [AgentNetworkController::class, 'networkTree']);
 
         // Rute Bagian 3.1: Overview Dashboard Utama
         Route::get('/agent/dashboard', [AgentNetworkController::class, 'index']);

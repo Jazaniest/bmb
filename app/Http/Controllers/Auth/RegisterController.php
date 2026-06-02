@@ -1,89 +1,77 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
-use Illuminate\Http\Request;
-use App\Models\RegistrationPayment;
+use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class PaymentController extends Controller
+class RegisterController extends Controller
 {
     /**
-     * SISI AGEN: Mengunggah Bukti Pembayaran Rp 3.500.000 
+     * Menampilkan Form Pendaftaran Agen Baru
      */
-    public function uploadProof(Request $request): JsonResponse
+    public function showRegistrationForm(Request $request)
     {
-        $request->validate([
-            'bank_name' => 'required|string|max:100',
-            'account_name' => 'required|string|max:100',
-            'proof_of_payment' => 'required|image|mimes:jpg,jpeg,png|max:2048', // Maksimal 2MB
-        ]);
-
-        $user = auth()->user();
-
-        // Pastikan user memang masih pending
-        if ($user->status === 'active') {
-            return response()->json(['message' => 'Akun Anda sudah aktif.'], 400);
-        }
-
-        // Simpan file gambar ke folder storage/app/public/proofs
-        $filePath = $request->file('proof_of_payment')->store('proofs', 'public');
-
-        // Catat data pembayaran ke database
-        $payment = RegistrationPayment::create([
-            'user_id' => $user->id,
-            'amount' => 3500000, // Sesuai biaya pendaftaran 
-            'bank_name' => $request->bank_name,
-            'account_name' => $request->account_name,
-            'proof_of_payment' => $filePath,
-            'status' => 'pending',
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi dari Admin Pusat.',
-            'data' => $payment
-        ], 201);
+        $referralCode = $request->query('ref');
+        return view('auth.register', compact('referralCode'));
     }
 
     /**
-     * SISI ADMIN: Memverifikasi & Mengaktifkan Akun Agen
+     * Memproses Data Form Pendaftaran (Fase POST)
      */
-    public function verifyPayment(Request $request, $id): JsonResponse
+    public function storeRegister(Request $request)
     {
+        // 1. Validasi Input Form
         $request->validate([
-            'action' => 'required|in:approve,reject',
-            'notes' => 'nullable|string'
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'bank_name' => 'required|string',
+            'account_number' => 'required|string',
+            'account_name' => 'required|string',
         ]);
 
-        $payment = RegistrationPayment::with('user')->findOrFail($id);
-
-        if ($payment->status !== 'pending') {
-            return response()->json(['message' => 'Pembayaran ini sudah pernah diproses sebelumnya.'], 400);
-        }
-
-        if ($request->action === 'approve') {
-            // 1. Ubah status invoice pembayaran menjadi approved
-            $payment->update(['status' => 'approved', 'notes' => $request->notes]);
-
-            // 2. AKTIFKAN AKUN USER JADI ACTIVE
-            $payment->user->update(['status' => 'active']);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Pembayaran disetujui. Akun agen "' . $payment->user->name . '" sekarang telah AKTIF.'
-                // NOTE: Di Fase 2 nanti, di titik inilah kita akan menembakkan pemicu (trigger) Bonus Jaringan!
-            ]);
+        // 2. Simpan data user baru ke database
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
+            'sponsor_id' => $this->getSponsorId($request->sponsor_code),
+            'bank_name' => $request->bank_name,
+            'account_number' => $request->account_number,
+            'account_name' => $request->account_name,
+            'balance' => 0,
             
-        } else {
-            // Jika ditolak admin
-            $payment->update(['status' => 'rejected', 'notes' => $request->notes]);
-            return response()->json([
-                'success' => true,
-                'message' => 'Pembayaran ditolak. Calon jamaah harus mengunggah ulang bukti yang valid.'
-            ]);
+            // --- DI SINI DIKUNCI OTOMATIS SEBAGAI AGENT ---
+            'role' => 'agent', 
+            'status' => 'pending', 
+        ]);
+
+        // 3. Otomatis loginkan user dan arahkan ke dashboard
+        Auth::login($user);
+
+        return redirect('/agent/dashboard')->with('success', 'Registrasi berhasil!');
+    }
+
+    /**
+     * Helper Internal untuk memecah string kode referral menjadi User ID Sponsor
+     */
+    private function getSponsorId($sponsorCode)
+    {
+        if (empty($sponsorCode)) {
+            return null;
         }
+
+        // Contoh format kode referral: KKB-102
+        // Kita pecah menggunakan tanda strip dan ambil angka paling belakang (ID)
+        $parts = explode('-', $sponsorCode);
+        $id = end($parts);
+
+        // Pastikan user sponsor tersebut ada di database dan berstatus active
+        $sponsorExists = User::where('id', $id)->where('status', 'active')->exists();
+
+        return $sponsorExists ? $id : null;
     }
 }
