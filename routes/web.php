@@ -9,93 +9,78 @@ use App\Http\Controllers\Admin\AdminWithdrawalController;
 use App\Http\Controllers\Agent\AgentNetworkController;
 use App\Http\Controllers\PaymentController;
 
-// --- RUTE AKAR / LANDING PAGE UTAMA ---
+// ============================================================
+// RUTE PUBLIK / LANDING
+// ============================================================
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/login', function () {
-    return view('auth.login');
+
+// ============================================================
+// AUTENTIKASI (TAMU)
+// ============================================================
+Route::middleware('guest')->group(function () {
+    Route::get('/login', fn() => view('auth.login'))->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'storeRegister'])->name('register.post');
 });
 
-// --- RUTE PUBLIK (BISA DIAKSES SIAPA SAJA) ---
-Route::get('/register', [RegisterController::class, 'showRegistrationForm']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-Route::post('/register', [RegisterController::class, 'storeRegister']);
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout']);
-
-// --- RUTE TERPROTEKSI (WAJIB LOGIN) ---
+// ============================================================
+// RUTE TERPROTEKSI (WAJIB LOGIN)
+// ============================================================
 Route::middleware(['auth'])->group(function () {
 
-    // 1. Rute Khusus User yang masih PENDING (Baru daftar, mau upload bukti bayar)
-    // Rute ini ditaruh di luar middleware 'is_agent' karena 'is_agent' mengunci hanya untuk yang sudah 'active'
-    Route::post('/payment/upload', [PaymentController::class, 'uploadProof']);
+    // Upload bukti bayar bagi user yang masih berstatus pending
+    Route::post('/payment/upload', [PaymentController::class, 'uploadProof'])->name('payment.upload');
 
+    // --------------------------------------------------------
+    // ADMIN
+    // --------------------------------------------------------
+    Route::middleware(['is_admin'])->prefix('admin')->name('admin.')->group(function () {
 
-    // KELOMPOK API KHUSUS ADMIN PUSAT
-    Route::middleware(['is_admin'])->prefix('admin')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        });
-        
-        // Rute verifikasi pembayaran pendaftaran (dari Fase 1 bagian 4)
-        Route::post('/payment/{id}/verify', [\App\Http\Controllers\PaymentController::class, 'verifyPayment']);
+        // Dashboard utama — tujuan redirect pertama kali setelah login admin
+        Route::get('/dashboard', [AdminAgentController::class, 'dashboard'])->name('dashboard');
 
-        // --- RUTE BARU: MANAJEMEN PENARIKAN DANA (WITHDRAWAL) ---
-        Route::get('/withdrawals', [\App\Http\Controllers\Admin\AdminWithdrawalController::class, 'index']);
-        Route::post('/withdrawals/{id}/process', [\App\Http\Controllers\Admin\AdminWithdrawalController::class, 'process']);
+        // Manajemen Agen
+        Route::get('/agents/pending', [AdminAgentController::class, 'pendingIndex'])->name('agents.pending');
+        Route::post('/agents/{id}/approve', [AdminAgentController::class, 'approveAgent'])->name('agents.approve');
+        Route::post('/agents/{id}/reject', [AdminAgentController::class, 'rejectAgent'])->name('agents.reject');
 
-        // --- KENDALI VERIFIKASI AGEN PENDING (Bagian 4.1 & 4.3) ---
-        // Tampilan antrean agen pending
-        Route::get('/agents/pending', [AdminAgentController::class, 'pendingIndex']);
-        
-        // Eksekusi tombol "Setujui" -> Ubah status 'active' & bagi bonus unilevel 10 tingkat
-        Route::post('/agents/{id}/approve', [AdminAgentController::class, 'approveAgent']);
-        
-        // Eksekusi tombol "Tolak" -> Ubah status 'rejected'
-        Route::post('/agents/{id}/reject', [AdminAgentController::class, 'rejectAgent']);
+        // Verifikasi Pembayaran Manual
+        Route::post('/payment/{id}/verify', [PaymentController::class, 'verifyPayment'])->name('payment.verify');
 
+        // Manajemen Penarikan Dana (Withdrawal)
+        Route::get('/withdrawals', [AdminWithdrawalController::class, 'index'])->name('withdrawals.index');
+        Route::post('/withdrawals/{id}/approve', [AdminWithdrawalController::class, 'approveWithdrawal'])->name('withdrawals.approve');
+        Route::post('/withdrawals/{id}/reject', [AdminWithdrawalController::class, 'rejectWithdrawal'])->name('withdrawals.reject');
 
-        // --- KENDALI VERIFIKASI PENARIKAN DANA / WD (Bagian 4.2) ---
-        // Tampilan antrean permintaan WD keuangan agen
-        Route::get('/withdrawals', [AdminWithdrawalController::class, 'index']);
-        
-        // Eksekusi tombol "Konfirmasi Transfer" -> Status WD berubah jadi approved
-        Route::post('/withdrawals/{id}/approve', [AdminWithdrawalController::class, 'approveWithdrawal']);
-        
-        // Eksekusi tombol "Tolak / Refund" -> Batalkan WD & kembalikan saldo ke dompet agen
-        Route::post('/withdrawals/{id}/reject', [AdminWithdrawalController::class, 'rejectWithdrawal']);
+        // Pengaturan Skema Bonus Unilevel
+        Route::get('/bonus-settings', [AdminAgentController::class, 'bonusIndex'])->name('bonus.index');
+        Route::post('/bonus-settings/update', [AdminAgentController::class, 'updateBonus'])->name('bonus.update');
     });
 
+    // --------------------------------------------------------
+    // AGEN
+    // --------------------------------------------------------
+    Route::middleware(['is_agent'])->prefix('agent')->name('agent.')->group(function () {
 
-    // KELOMPOK API KHUSUS AGEN / JAMAAH AKTIF
-    Route::middleware(['is_agent'])->prefix('agent')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('agent.dashboard');
-        });
+        Route::get('/dashboard', fn() => view('agent.dashboard'))->name('dashboard');
 
-        // Rute finansial dompet agen (dari Fase 3)
-        Route::get('/wallet', [WalletController::class, 'index']);
-        Route::post('/wallet/withdraw', [WalletController::class, 'withdraw']);
+        // Dompet Digital
+        Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+        Route::post('/wallet/withdraw', [WalletController::class, 'withdraw'])->name('wallet.withdraw');
 
-        // --- RUTE JARINGAN GENEALOGI & STATISTIK ---
-        Route::get('/network', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getGenealogyTree']);
-        Route::get('/network/summary', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'getNetworkSummary']); // RUTE BARU
-
-        Route::get('/network', [AgentNetworkController::class, 'networkTree']);
-
-        // Rute Bagian 3.1: Overview Dashboard Utama
-        Route::get('/agent/dashboard', [AgentNetworkController::class, 'index']);
-
-        // Rute Bagian 3.3: Struktur Pohon Jaringan (Accordion Tree)
-        Route::get('/agent/network', [AgentNetworkController::class, 'networkTree']);
-
-        // Rute Bagian 3.2: Dompet Keuangan & Riwayat Mutasi Bonus
-        Route::get('/agent/wallet', [WalletController::class, 'index']);
-        Route::post('/agent/wallet/withdraw', [WalletController::class, 'withdraw']);
+        // Pohon Jaringan Unilevel
+        Route::get('/network', [AgentNetworkController::class, 'networkTree'])->name('network.tree');
+        Route::get('/network/summary', [AgentNetworkController::class, 'getNetworkSummary'])->name('network.summary');
     });
 
 });
 
-// Rute khusus untuk menangani upload dari tengah modal pembeku
-Route::middleware(['auth'])->post('/api/payment/upload', [\App\Http\Controllers\Agent\AgentNetworkController::class, 'uploadProofOfPayment']);
+// API upload bukti bayar dari modal
+Route::middleware(['auth'])
+    ->post('/api/payment/upload', [AgentNetworkController::class, 'uploadProofOfPayment'])
+    ->name('api.payment.upload');

@@ -15,7 +15,7 @@
             <span>Dashboard Admin</span>
         </a>
 
-        <a href="{{ url('/admin/payments') }}" class="flex items-center gap-3 px-3 h-11 rounded-lg text-sm font-medium transition-colors {{ Request::is('admin/payments*') ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-slate-800 hover:text-white' }}">
+        <a href="{{ url('/admin/agents/pending') }}" class="flex items-center gap-3 px-3 h-11 rounded-lg text-sm font-medium transition-colors {{ Request::is('admin/agents*') ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-slate-800 hover:text-white' }}">
             <i class="ph ph-check-square-offset text-xl"></i>
             <span>Verifikasi Agen</span>
         </a>
@@ -23,6 +23,11 @@
         <a href="{{ url('/admin/withdrawals') }}" class="flex items-center gap-3 px-3 h-11 rounded-lg text-sm font-medium transition-colors {{ Request::is('admin/withdrawals*') ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-slate-800 hover:text-white' }}">
             <i class="ph ph-hand-coins text-xl"></i>
             <span>Pencairan Dana (WD)</span>
+        </a>
+
+        <a href="{{ url('/admin/bonus-settings') }}" class="flex items-center gap-3 px-3 h-11 rounded-lg text-sm font-medium transition-colors {{ Request::is('admin/bonus-settings*') ? 'bg-amber-600 text-white font-semibold' : 'hover:bg-slate-800 hover:text-white' }}">
+            <i class="ph ph-sliders-horizontal text-xl"></i>
+            <span>Pengaturan Bonus</span>
         </a>
     </nav>
 

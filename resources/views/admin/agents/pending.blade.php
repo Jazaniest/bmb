@@ -106,9 +106,8 @@
 </div>
 
 <!-- COMPONENT MODAL POPUP PREVIEW BUKTI TRANSFER -->
-<div id="receipt-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+<!-- <div id="receipt-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
-        <!-- Modal Header -->
         <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
             <div>
                 <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Bukti Transfer Pendaftaran</h4>
@@ -118,29 +117,27 @@
                 <i class="ph ph-x text-base"></i>
             </button>
         </div>
-        <!-- Modal Body (Preview Gambar) -->
         <div class="p-6 bg-slate-900 flex justify-center items-center max-h-100 overflow-y-auto">
             <img id="modal-image" src="" alt="Bukti Pembayaran" class="max-w-full h-auto rounded-lg shadow-md object-contain">
         </div>
-        <!-- Modal Footer -->
         <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
             <button onclick="closeReceiptModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xxs font-bold rounded-xl transition-colors cursor-pointer">
                 Tutup Pratinjau
             </button>
         </div>
     </div>
-</div>
+</div> -->
 
 <!-- JAVASCRIPT MODAL LOGIC -->
 <script>
     function openReceiptModal(imageUrl, agentName) {
         document.getElementById('modal-image').src = imageUrl;
         document.getElementById('modal-agent-name').innerText = "Calon Agen: " + agentName;
-        document.getElementById('receipt-modal').classList.remove('hidden');
+        // document.getElementById('receipt-modal').classList.remove('hidden');
     }
 
     function closeReceiptModal() {
-        document.getElementById('receipt-modal').classList.add('hidden');
+        // document.getElementById('receipt-modal').classList.add('hidden');
         document.getElementById('modal-image').src = "";
     }
 </script>

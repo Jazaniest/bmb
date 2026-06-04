@@ -13,14 +13,91 @@ use Illuminate\Http\JsonResponse;
 class AdminWithdrawalController extends Controller
 {
     /**
-     * 1. Menampilkan Semua Daftar Pengajuan Penarikan Dana (Untuk Antrean Admin)
+     * 1. Menampilkan Halaman Antrean Penarikan Dana (Blade View)
+     * Route: GET /admin/withdrawals
      */
-    public function index(Request $request): JsonResponse
+    public function index()
     {
-        // Menyediakan filter status (pending, approved, rejected) jika diperlukan
+        $pendingWithdrawals = Withdrawal::with('user:id,name,email')
+            ->where('status', 'pending')
+            ->latest()
+            ->get()
+            ->map(fn($wd) => [
+                'id'             => $wd->id,
+                'user_id'        => $wd->user_id,
+                'agent_name'     => $wd->user->name ?? '-',
+                'bank_name'      => $wd->bank_name,
+                'account_number' => $wd->account_number,
+                'account_name'   => $wd->account_name,
+                'amount'         => $wd->amount,
+                'created_at'     => $wd->created_at->format('d M Y, H:i'),
+            ])
+            ->toArray();
+
+        return view('admin.withdrawals.index', compact('pendingWithdrawals'));
+    }
+
+    /**
+     * 2. Menyetujui Penarikan Dana (Form POST dari Blade)
+     * Route: POST /admin/withdrawals/{id}/approve
+     */
+    public function approveWithdrawal($id)
+    {
+        $withdrawal = Withdrawal::where('status', 'pending')->findOrFail($id);
+
+        DB::transaction(function () use ($withdrawal) {
+            $wallet = Wallet::where('user_id', $withdrawal->user_id)->lockForUpdate()->first();
+
+            // Ubah status menjadi approved
+            $withdrawal->update([
+                'status' => 'approved',
+                'notes'  => 'Penarikan disetujui oleh Admin.',
+            ]);
+
+            // Catat mutasi debit ke tabel transactions
+            Transaction::create([
+                'user_id'     => $withdrawal->user_id,
+                'amount'      => $withdrawal->amount,
+                'type'        => 'debit',
+                'category'    => 'withdrawal',
+                'description' => "Penarikan komisi dicairkan ke rekening {$withdrawal->bank_name} ({$withdrawal->account_number})",
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Penarikan dana berhasil dikonfirmasi dan mutasi debit telah dicatat.');
+    }
+
+    /**
+     * 3. Menolak Penarikan Dana (Form POST dari Blade)
+     * Route: POST /admin/withdrawals/{id}/reject
+     */
+    public function rejectWithdrawal($id)
+    {
+        $withdrawal = Withdrawal::where('status', 'pending')->findOrFail($id);
+
+        DB::transaction(function () use ($withdrawal) {
+            // Kembalikan saldo ke dompet agen
+            $wallet = Wallet::where('user_id', $withdrawal->user_id)->lockForUpdate()->first();
+            $wallet->increment('balance', $withdrawal->amount);
+
+            // Ubah status menjadi rejected
+            $withdrawal->update([
+                'status' => 'rejected',
+                'notes'  => 'Penarikan ditolak oleh Admin, saldo dikembalikan.',
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Penarikan dana ditolak, saldo agen telah dikembalikan secara utuh.');
+    }
+
+    /**
+     * 4. API: Menampilkan Daftar Penarikan (JSON untuk kebutuhan API eksternal)
+     * Route: GET /api/admin/withdrawals?status=pending
+     */
+    public function indexApi(Request $request): JsonResponse
+    {
         $status = $request->query('status', 'pending');
 
-        // Mengambil data penarikan beserta profil agennya
         $withdrawals = Withdrawal::with('user:id,name,email')
             ->where('status', $status)
             ->latest()
@@ -28,18 +105,19 @@ class AdminWithdrawalController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $withdrawals
+            'data'    => $withdrawals,
         ], 200);
     }
 
     /**
-     * 2. Memproses Persetujuan atau Penolakan Penarikan Dana
+     * 5. API: Memproses Approve/Reject via JSON (untuk kebutuhan API eksternal)
+     * Route: POST /api/admin/withdrawals/{id}/process
      */
     public function process(Request $request, $id): JsonResponse
     {
         $request->validate([
             'action' => 'required|in:approve,reject',
-            'notes' => 'nullable|string' // Alasan jika ditolak, atau nomor referensi bank jika disetujui
+            'notes'  => 'nullable|string',
         ]);
 
         $withdrawal = Withdrawal::findOrFail($id);
@@ -47,54 +125,44 @@ class AdminWithdrawalController extends Controller
         if ($withdrawal->status !== 'pending') {
             return response()->json([
                 'success' => false,
-                'message' => 'Pengajuan penarikan ini sudah diproses sebelumnya.'
+                'message' => 'Pengajuan penarikan ini sudah diproses sebelumnya.',
             ], 400);
         }
 
-        // Jalankan operasi dengan DB Transaction & Row Locking untuk keamanan finansial
         DB::transaction(function () use ($withdrawal, $request) {
-            
-            // Kunci baris data dompet agen yang bersangkutan selama proses ini berjalan
             $wallet = Wallet::where('user_id', $withdrawal->user_id)->lockForUpdate()->first();
 
             if ($request->action === 'approve') {
-                // --- JIKA ADMIN MENYETUJUI ---
-                // 1. Ubah status data penarikan menjadi approved
                 $withdrawal->update([
                     'status' => 'approved',
-                    'notes' => $request->notes ?? 'Penarikan disetujui oleh Admin.'
+                    'notes'  => $request->notes ?? 'Penarikan disetujui oleh Admin.',
                 ]);
 
-                // 2. Catat secara resmi mutasi keluar (debit) ke tabel transactions
                 Transaction::create([
-                    'user_id' => $withdrawal->user_id,
-                    'amount' => $withdrawal->amount,
-                    'type' => 'debit', // Uang keluar
-                    'category' => 'withdrawal',
-                    'description' => "Penarikan komisi dicairkan ke rekening {$withdrawal->bank_name} ({$withdrawal->account_number})"
+                    'user_id'     => $withdrawal->user_id,
+                    'amount'      => $withdrawal->amount,
+                    'type'        => 'debit',
+                    'category'    => 'withdrawal',
+                    'description' => "Penarikan komisi dicairkan ke rekening {$withdrawal->bank_name} ({$withdrawal->account_number})",
                 ]);
-
             } else {
-                // --- JIKA ADMIN MENOLAK ---
-                // 1. Kembalikan uang komisi ke saldo dompet agen secara utuh
                 $wallet->increment('balance', $withdrawal->amount);
 
-                // 2. Ubah status penarikan menjadi rejected beserta alasannya
                 $withdrawal->update([
                     'status' => 'rejected',
-                    'notes' => $request->notes ?? 'Penarikan ditolak oleh Admin.'
+                    'notes'  => $request->notes ?? 'Penarikan ditolak oleh Admin.',
                 ]);
             }
         });
 
-        $message = $request->action === 'approve' 
-            ? 'Penarikan dana berhasil disetujui dan mutasi debit telah dicatat.' 
+        $message = $request->action === 'approve'
+            ? 'Penarikan dana berhasil disetujui dan mutasi debit telah dicatat.'
             : 'Penarikan dana ditolak, saldo agen telah dikembalikan secara utuh.';
 
         return response()->json([
             'success' => true,
             'message' => $message,
-            'data' => $withdrawal
+            'data'    => $withdrawal,
         ], 200);
     }
 }

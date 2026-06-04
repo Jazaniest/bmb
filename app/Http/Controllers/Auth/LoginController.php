@@ -12,34 +12,34 @@ class LoginController extends Controller
     {
         // 1. Validasi Input Form
         $request->validate([
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required',
         ]);
 
         $credentials = $request->only('email', 'password');
 
         // 2. Jalankan Proses Autentikasi
-        if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // 3. AMBIL DATA USER YANG BERHASIL LOGIN
-            $user = \Illuminate\Support\Facades\Auth::user();
-            
-            // 4. KEMUDI PENGALIHAN BERDASARKAN ROLE RIIL
-            if ($user->isAdmin()) { // atau $user->role === 'admin'
-                // Jika Admin, lempar ke Dashboard Antrean Admin Pusat
-                return redirect()->intended('/admin/agents/pending')
-                                ->with('success', 'Selamat Datang Kembali, Admin Pusat!');
+            // 3. Ambil data user yang berhasil login
+            $user = Auth::user();
+
+            // 4. Kemudi pengalihan berdasarkan role
+            if ($user->isAdmin()) {
+                // Jika Admin, arahkan ke dashboard pusat
+                return redirect('/admin/dashboard')
+                    ->with('success', 'Selamat Datang Kembali, Admin Pusat!');
             }
 
-            if ($user->isAgent()) { // atau $user->role === 'agent'
-                // Jika Agen, lempar ke Dashboard Kerja Agen
-                return redirect()->intended('/agent/dashboard')
-                                ->with('success', 'Login berhasil!');
+            if ($user->isAgent()) {
+                // Jika Agen, arahkan ke dashboard agen
+                return redirect('/agent/dashboard')
+                    ->with('success', 'Login berhasil!');
             }
         }
 
-        // Jika baris di atas gagal dieksekusi (Email/Password salah)
+        // Jika autentikasi gagal (email/password salah)
         return back()->withErrors([
             'email' => 'Kredensial yang Anda masukkan tidak cocok dengan data kami.',
         ])->onlyInput('email');
