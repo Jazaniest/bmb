@@ -1,22 +1,23 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Kaukaba Tour & Travel')</title>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>@yield('title', 'Kaukaba Tour & Travel - Solusi Umrah & Haji Premium')</title>
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen selection:bg-teal-800 selection:text-white">
 
-    <!-- Memanggil Komponen Navbar Global -->
     @include('components.navbar')
 
-    <!-- Area Konten Dinamis Landing Page -->
-    <main class="grow">
+    <main class="grow animate-fade-in">
         @yield('content')
     </main>
 
-    <!-- Memanggil Komponen Footer Global -->
     @include('components.footer')
 
 </body>
