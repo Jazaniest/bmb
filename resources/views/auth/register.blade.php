@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Pendaftaran Agen Baru - Kaukaba')
+@section('title', 'Pendaftaran Agen Baru - BMB')
 
 @section('content')
 <div class="bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden transform transition-all duration-300">
@@ -110,7 +110,7 @@
         <div class="flex items-start gap-2.5 pt-1">
             <input type="checkbox" id="terms" required class="w-4 h-4 mt-0.5 accent-teal-700 rounded border-slate-300 cursor-pointer shrink-0">
             <label for="terms" class="text-[11px] text-slate-500 leading-normal cursor-pointer select-none">
-                Saya menyetujui biaya aktivasi lisensi keagenan PT. Kaukaba sebesar <strong class="text-slate-800 font-bold">Rp 3.500.000</strong> setelah pendaftaran ini berhasil dilakukan.
+                Saya menyetujui biaya aktivasi lisensi keagenan PT. BMB sebesar <strong class="text-slate-800 font-bold">Rp 3.500.000</strong> setelah pendaftaran ini berhasil dilakukan.
             </label>
         </div>
 

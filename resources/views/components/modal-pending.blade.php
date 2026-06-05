@@ -22,7 +22,7 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-teal-600"></span> Bank Syariah Indonesia (BSI)
                     </p>
                     <p class="text-lg sm:text-xl font-mono font-bold text-teal-950 tracking-wider mt-1">7700-1122-33</p>
-                    <p class="text-xs text-slate-400 mt-0.5 font-light">Atas Nama: PT. Kaukaba Tour & Travel</p>
+                    <p class="text-xs text-slate-400 mt-0.5 font-light">Atas Nama: PT. BMB Tour & Travel</p>
                 </div>
                 <div class="sm:text-right pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-150 flex sm:flex-col justify-between items-center sm:items-end">
                     <p class="text-xxs text-slate-400 uppercase tracking-wider">Nominal Wajib:</p>

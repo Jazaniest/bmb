@@ -21,7 +21,7 @@ class CheckAdmin
         // 2. Periksa apakah pengguna memiliki role 'admin'
         // Jika bukan admin (misal: 'agent'), tolak akses dan lempar balik ke dashboard mereka sendiri
         if (auth()->user()->role !== 'admin') {
-            return redirect('/agent/dashboard')->with('error', 'Akses ditolak! Halaman tersebut hanya dapat diakses oleh Manajemen Pusat PT. Kaukaba.');
+            return redirect('/agent/dashboard')->with('error', 'Akses ditolak! Halaman tersebut hanya dapat diakses oleh Manajemen Pusat PT. BMB.');
         }
 
         // 3. Jika lolos verifikasi, izinkan request melanjutkan perjalanan ke Controller

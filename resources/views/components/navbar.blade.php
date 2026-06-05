@@ -7,7 +7,7 @@
                     <i class="ph ph-compass text-base sm:text-lg"></i>
                 </div>
                 <span class="text-base sm:text-lg font-serif font-bold tracking-tight text-slate-900">
-                    Kaukaba <span class="text-transparent bg-clip-text bg-linear-to-r from-amber-600 to-amber-500 font-sans font-medium text-xs sm:text-base tracking-normal ml-0.5">Travel</span>
+                    BMB <span class="text-transparent bg-clip-text bg-linear-to-r from-amber-600 to-amber-500 font-sans font-medium text-xs sm:text-base tracking-normal ml-0.5">Travel</span>
                 </span>
             </div>
 

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'PT. Kaukaba Tour & Travel - Solusi Umrah & Haji Premium')
+@section('title', 'PT. BMB Tour & Travel - Solusi Umrah & Haji Premium')
 
 @section('content')
 
@@ -22,7 +22,7 @@
                     Melangkah Pasti <br class="hidden sm:inline">Menuju <span class="text-transparent bg-clip-text bg-linear-to-r from-amber-300 via-amber-400 to-amber-200 drop-shadow-xs">Baitullah</span>
                 </h1>
                 <p class="text-sm sm:text-lg text-teal-100/80 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
-                    Wujudkan ibadah Umrah dan Haji yang mabrur dengan fasilitas premium, bimbingan sesuai Sunnah, dan kepastian jadwal keberangkatan bersama PT. Kaukaba Tour & Travel.
+                    Wujudkan ibadah Umrah dan Haji yang mabrur dengan fasilitas premium, bimbingan sesuai Sunnah, dan kepastian jadwal keberangkatan bersama PT. BMB Tour & Travel.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-3.5 pt-2">
                     <a href="#paket" class="h-12 sm:h-14 px-6 sm:px-8 bg-linear-to-r from-amber-500 to-amber-400 hover:from-amber-600 hover:to-amber-500 text-slate-950 font-bold rounded-xl inline-flex items-center justify-center shadow-lg shadow-amber-950/20 transition-all transform hover:-translate-y-0.5 cursor-pointer tracking-wide text-sm">
@@ -197,7 +197,7 @@
             <div class="space-y-6 sm:space-y-8">
                 <div class="space-y-2.5 text-center lg:text-left">
                     <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">Why Choose Us</span>
-                    <h2 class="text-2xl sm:text-3xl font-serif font-bold text-slate-900 tracking-tight leading-tight">Mengapa Harus Menjadi Mitra Kaukaba Travel?</h2>
+                    <h2 class="text-2xl sm:text-3xl font-serif font-bold text-slate-900 tracking-tight leading-tight">Mengapa Harus Menjadi Mitra BMB Travel?</h2>
                 </div>
                 
                 <div class="space-y-5 sm:space-y-6">

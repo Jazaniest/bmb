@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title', 'Dashboard - Kaukaba')</title>
+    <title>@yield('title', 'Dashboard - BMB')</title>
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -30,7 +30,7 @@
                 <button id="btn-toggle-sidebar" class="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer" aria-label="Buka Menu">
                     <i class="ph ph-list text-2xl"></i>
                 </button>
-                <h1 class="text-base sm:text-lg font-semibold text-slate-700 tracking-tight hidden sm:block">Panel Kaukaba</h1>
+                <h1 class="text-base sm:text-lg font-semibold text-slate-700 tracking-tight hidden sm:block">Panel BMB</h1>
             </div>
             
             <div class="flex items-center gap-3 shrink-0">

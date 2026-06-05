@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Masuk Aplikasi - Kaukaba')
+@section('title', 'Masuk Aplikasi - BMB')
 
 @section('content')
 <!-- Memanggil toast alert khusus untuk memunculkan pesan error jika login gagal -->
@@ -22,7 +22,7 @@
             <i class="ph-bold ph-airplane-takeoff text-xl text-amber-400 animate-pulse"></i>
         </div>
         <h2 class="text-xl font-serif font-bold tracking-wide">Selamat Datang Kembali</h2>
-        <p class="text-xs text-teal-200/80 mt-1 font-light">Masuk ke Panel Kaukaba Tour & Travel</p>
+        <p class="text-xs text-teal-200/80 mt-1 font-light">Masuk ke Panel BMB Tour & Travel</p>
     </div>
 
     <!-- Area Isi Form -->

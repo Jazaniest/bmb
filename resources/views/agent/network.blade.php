@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Pohon Jaringan Agen - Kaukaba Tour & Travel')
+@section('title', 'Pohon Jaringan Agen - BMB Tour & Travel')
 
 @section('content')
 <div class="space-y-6">

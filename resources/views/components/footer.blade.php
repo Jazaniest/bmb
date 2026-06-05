@@ -2,7 +2,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 text-center sm:text-left">
         <div class="space-y-1">
             <p class="text-sm font-medium text-slate-800">
-                &copy; 2026 <span class="font-serif font-bold text-teal-950">PT. Kaukaba Tour and Travel</span>.
+                &copy; 2026 <span class="font-serif font-bold text-teal-950">PT. BMB Tour and Travel</span>.
             </p>
             <p class="text-xs text-slate-400 font-light">
                 Hak Cipta Dilindungi Undang-Undang. Izin Resmi Kemenag RI.

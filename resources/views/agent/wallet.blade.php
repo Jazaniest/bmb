@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Dompet & Komisi Agen - Kaukaba Tour & Travel')
+@section('title', 'Dompet & Komisi Agen - BMB Tour & Travel')
 
 @section('content')
 <!-- Memanggil Toast Alert Global untuk Feedback Sukses/Gagal WD -->

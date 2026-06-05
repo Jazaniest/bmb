@@ -7,7 +7,7 @@
             </div>
             <div class="flex flex-col">
                 <span class="text-xs font-bold text-white tracking-wide uppercase leading-tight">Ruang Kerja Agen</span>
-                <span class="text-xxs text-teal-400 font-medium tracking-wider mt-0.5">PT. Kaukaba Travel</span>
+                <span class="text-xxs text-teal-400 font-medium tracking-wider mt-0.5">PT. BMB Travel</span>
             </div>
         </div>
         

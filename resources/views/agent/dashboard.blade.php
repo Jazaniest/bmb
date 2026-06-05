@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Dashboard Agen - Kaukaba Tour & Travel')
+@section('title', 'Dashboard Agen - BMB Tour & Travel')
 
 @section('content')
 <!-- Memanggil Toast Alert Global untuk Notifikasi Flash -->
@@ -15,7 +15,7 @@
         
         <div class="space-y-1 relative z-10">
             <h2 class="text-xl sm:text-2xl font-serif font-bold tracking-wide">Ahlan Wa Sahlan, {{ auth()->user()->name }}!</h2>
-            <p class="text-xs text-teal-200/80 font-light">Mitra Resmi Kaukaba Tour & Travel • ID Agen: <span class="font-mono font-bold text-amber-400">KKB-{{ str_pad(auth()->user()->id, 7, '0', STR_PAD_LEFT) }}</span></p>
+            <p class="text-xs text-teal-200/80 font-light">Mitra Resmi BMB Tour & Travel • ID Agen: <span class="font-mono font-bold text-amber-400">KKB-{{ str_pad(auth()->user()->id, 7, '0', STR_PAD_LEFT) }}</span></p>
         </div>
 
         <!-- SLOT LINK REFERRAL DENGAN JAVASCRIPT COPY BUTTON -->
