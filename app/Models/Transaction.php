@@ -10,8 +10,6 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $table = 'transactions';
-
     protected $fillable = [
         'user_id',
         'amount',
@@ -20,11 +18,15 @@ class Transaction extends Model
         'description',
     ];
 
-    /**
-     * RELASI: Transaksi ini milik siapa
-     */
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+        ];
+    }
+
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 }

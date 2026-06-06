@@ -79,8 +79,8 @@
                         {{-- Aksi --}}
                         <td class="py-4 px-6">
                             <div class="flex items-center justify-center gap-2">
-                                {{-- Approve --}}
-                                <form action="{{ url('/admin/withdrawals/'.$wd['id'].'/approve') }}" method="POST"
+                                {{-- ✅ Approve --}}
+                                <form action="{{ route('admin.withdrawals.approve', $wd['id']) }}" method="POST"
                                     onsubmit="return confirm('Apakah Anda sudah benar-benar mentransfer dana sebesar Rp {{ number_format($wd['amount'], 0, ',', '.') }} ke rekening tujuan?')">
                                     @csrf
                                     <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xxs rounded-xl shadow-xxs transition-colors cursor-pointer">
@@ -88,8 +88,8 @@
                                     </button>
                                 </form>
 
-                                {{-- Reject --}}
-                                <form action="{{ url('/admin/withdrawals/'.$wd['id'].'/reject') }}" method="POST"
+                                {{-- ✅ Reject --}}
+                                <form action="{{ route('admin.withdrawals.reject', $wd['id']) }}" method="POST"
                                     onsubmit="return confirm('Tolak penarikan dana ini? Saldo akan dikembalikan penuh ke dompet agen.')">
                                     @csrf
                                     <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-600 font-bold text-xxs rounded-xl transition-colors cursor-pointer">
